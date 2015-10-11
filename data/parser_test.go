@@ -24,5 +24,23 @@ func TestGetSentences(t *testing.T) {
 }
 
 func TestGetPairs(t *testing.T) {
+	inputText := "Hello my name is Joel"
+	controlLength := 4
 
+	pairs := GetPairs(inputText)
+
+	if len(pairs) != controlLength {
+		t.Fatal("Pairs length does not match. Got: ", len(pairs))
+	}
+
+	testHead := pairs[1].head
+	testTail := pairs[1].tail
+
+	if testHead != "my" {
+		t.Fatal("Test Head does not match")
+	}
+
+	if testTail != "name" {
+		t.Fatal("Test Tail does not match")
+	}
 }
