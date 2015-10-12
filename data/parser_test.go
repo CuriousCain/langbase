@@ -33,8 +33,8 @@ func TestGetPairs(t *testing.T) {
 		t.Fatal("Pairs length does not match. Got: ", len(pairs))
 	}
 
-	testHead := pairs[1].head
-	testTail := pairs[1].tail
+	testHead := pairs[1].Head
+	testTail := pairs[1].Tail
 
 	if testHead != "my" {
 		t.Fatal("Test Head does not match")

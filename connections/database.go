@@ -5,7 +5,7 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-func MongoConnection(host string, database string) mgo.Database {
+func GetConnection(host string, database string) *mgo.Database {
 	session, err := mgo.Dial(host)
 	fault.Handle(err)
 

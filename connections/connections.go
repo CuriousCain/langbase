@@ -6,7 +6,11 @@ import (
 	"net"
 	"strings"
 
+	"github.com/curiouscain/langbase/data"
 	"github.com/curiouscain/langbase/fault"
+
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func StartListening(port string) net.Listener {
@@ -23,7 +27,7 @@ func Accept(ln net.Listener) net.Conn {
 	return conn
 }
 
-func HandleLiveConnection(conn net.Conn) {
+func HandleLiveConnection(conn net.Conn, collection *mgo.Collection) {
 	for {
 		msg, err := bufio.NewReader(conn).ReadString('\n')
 		fault.Handle(err)
@@ -31,5 +35,22 @@ func HandleLiveConnection(conn net.Conn) {
 		fmt.Println(msg)
 		newMsg := strings.ToUpper(msg)
 		conn.Write([]byte(newMsg + "\n"))
+
+		sentences := data.GetSentences(msg)
+
+		var sentencePairs [][]data.WordPair
+
+		for _, sentence := range sentences {
+			sentencePairs = append(sentencePairs, data.GetPairs(sentence))
+		}
+
+		for _, sentencePair := range sentencePairs {
+			for _, pair := range sentencePair {
+				_, err := collection.Upsert(bson.M{pair.Head: pair.Tail}, bson.M{"$inc": bson.M{"weight": 0.1}})
+				fault.Handle(err)
+
+				conn.Write([]byte("Done!"))
+			}
+		}
 	}
 }

@@ -3,8 +3,8 @@ package data
 import "strings"
 
 type WordPair struct {
-	head string
-	tail string
+	Head string
+	Tail string
 }
 
 func GetSentences(inputText string) []string {
@@ -20,8 +20,8 @@ func GetPairs(inputText string) []WordPair {
 	var pairs []WordPair
 
 	for i := 0; i < pairsLength-1; i++ {
-		pair.head = stringPairs[i]
-		pair.tail = stringPairs[1+i]
+		pair.Head = stringPairs[i]
+		pair.Tail = stringPairs[1+i]
 
 		pairs = append(pairs, pair)
 	}
