@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/curiouscain/langbase/connections"
+	"sync"
 )
 
 func main() {
@@ -11,12 +11,19 @@ func main() {
 
 	ln := connections.StartListening(":8000")
 
-	db := connections.GetConnection("localhost", "test")
-	collection := db.C("words")
+	session := connections.GetConnection("localhost")
+	defer session.Close()
+
+	collection := session.DB("test").C("words")
+
+	var wg sync.WaitGroup
 
 	for {
 		conn := connections.Accept(ln)
 
-		go connections.HandleLiveConnection(conn, collection)
+		wg.Add(1)
+		go connections.HandleLiveConnection(conn, wg, collection)
 	}
+
+	wg.Wait()
 }

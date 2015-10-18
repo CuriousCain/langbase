@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
-	"strings"
+	"sync"
 
 	"github.com/curiouscain/langbase/data"
 	"github.com/curiouscain/langbase/fault"
@@ -27,14 +27,13 @@ func Accept(ln net.Listener) net.Conn {
 	return conn
 }
 
-func HandleLiveConnection(conn net.Conn, collection *mgo.Collection) {
+func HandleLiveConnection(conn net.Conn, wg sync.WaitGroup, collection *mgo.Collection) {
+	defer wg.Done()
+	fmt.Println("Connection accepted!")
+
 	for {
 		msg, err := bufio.NewReader(conn).ReadString('\n')
 		fault.Handle(err)
-
-		fmt.Println(msg)
-		newMsg := strings.ToUpper(msg)
-		conn.Write([]byte(newMsg + "\n"))
 
 		sentences := data.GetSentences(msg)
 

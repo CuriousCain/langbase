@@ -5,13 +5,9 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-func GetConnection(host string, database string) *mgo.Database {
+func GetConnection(host string) *mgo.Session {
 	session, err := mgo.Dial(host)
 	fault.Handle(err)
 
-	defer session.Close()
-
-	db := session.DB(database)
-
-	return db
+	return session
 }
