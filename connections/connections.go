@@ -22,17 +22,8 @@ func StartListening(port string) net.Listener {
 	return ln
 }
 
-func EchoServer(ws *websocket.Conn) {
-	var in []byte
-
-	err := websocket.Message.Receive(ws, &in)
-	fault.Handle(err)
-
-	fmt.Println(string(in))
-}
-
 func StartListeningForWebSocket(port string) {
-	http.Handle("/", websocket.Handler(EchoServer))
+	http.Handle("/", websocket.Handler(HandleWebSocketConnection))
 	err := http.ListenAndServe(port, nil)
 	fault.Handle(err)
 }
@@ -42,6 +33,15 @@ func Accept(ln net.Listener) net.Conn {
 	fault.Handle(err)
 
 	return conn
+}
+
+func HandleWebSocketConnection(ws *websocket.Conn) {
+	var in []byte
+
+	err := websocket.Message.Receive(ws, &in)
+	fault.Handle(err)
+
+	fmt.Println(string(in))
 }
 
 func HandleLiveConnection(conn net.Conn, wg sync.WaitGroup, collection *mgo.Collection) {
@@ -71,8 +71,4 @@ func HandleLiveConnection(conn net.Conn, wg sync.WaitGroup, collection *mgo.Coll
 
 		conn.Write([]byte("Done!"))
 	}
-}
-
-func HandleWebSocketConnection() {
-
 }
