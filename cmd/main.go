@@ -10,6 +10,7 @@ func main() {
 	fmt.Println("Server starting...")
 
 	ln := connections.StartListening(":8000")
+	connections.StartListeningForWebSocket(":8001")
 
 	session := connections.GetConnection("localhost")
 	defer session.Close()
