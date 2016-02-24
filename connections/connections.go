@@ -22,8 +22,19 @@ func StartListening(port string) net.Listener {
 	return ln
 }
 
-func StartListeningForWebSocket(port string) {
-	http.Handle("/", websocket.Handler(HandleWebSocketConnection))
+func StartListeningForWebSocket(port string, collection *mgo.Collection) {
+	http.Handle("/", websocket.Handler(func(ws *websocket.Conn) {
+		//var in []byte
+		var in string
+
+		err := websocket.Message.Receive(ws, &in)
+		fault.Handle(err)
+
+		fmt.Println(in)
+
+		handleMessage(in, collection)
+	}))
+
 	err := http.ListenAndServe(port, nil)
 	fault.Handle(err)
 }
@@ -33,15 +44,6 @@ func Accept(ln net.Listener) net.Conn {
 	fault.Handle(err)
 
 	return conn
-}
-
-func HandleWebSocketConnection(ws *websocket.Conn) {
-	var in []byte
-
-	err := websocket.Message.Receive(ws, &in)
-	fault.Handle(err)
-
-	fmt.Println(string(in))
 }
 
 func HandleLiveConnection(conn net.Conn, wg sync.WaitGroup, collection *mgo.Collection) {
@@ -54,21 +56,25 @@ func HandleLiveConnection(conn net.Conn, wg sync.WaitGroup, collection *mgo.Coll
 
 		fmt.Println(msg)
 
-		sentences := data.GetSentences(msg)
-
-		var sentencePairs [][]data.WordPair
-
-		for _, sentence := range sentences {
-			sentencePairs = append(sentencePairs, data.GetPairs(sentence))
-		}
-
-		for _, sentencePair := range sentencePairs {
-			for _, pair := range sentencePair {
-				_, err := collection.Upsert(bson.M{pair.Head: pair.Tail}, bson.M{"$inc": bson.M{"weight": 0.1}})
-				fault.Handle(err)
-			}
-		}
+		handleMessage(msg, collection)
 
 		conn.Write([]byte("Done!"))
+	}
+}
+
+func handleMessage(message string, collection *mgo.Collection) {
+	sentences := data.GetSentences(message)
+
+	var sentencePairs [][]data.WordPair
+
+	for _, sentence := range sentences {
+		sentencePairs = append(sentencePairs, data.GetPairs(sentence))
+	}
+
+	for _, sentencePair := range sentencePairs {
+		for _, pair := range sentencePair {
+			_, err := collection.Upsert(bson.M{pair.Head: pair.Tail}, bson.M{"$inc": bson.M{"weight": 0.1}})
+			fault.Handle(err)
+		}
 	}
 }
